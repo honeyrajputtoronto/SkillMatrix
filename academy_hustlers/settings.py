@@ -28,7 +28,6 @@ DEBUG = str(os.environ.get('DEBUG')) == "1" # 1== TRUE
 
 ALLOWED_HOSTS = ["127.0.0.1","healthy-memory-production.up.railway.app"]
 
-
 # Application definition
 
 INSTALLED_APPS = [
