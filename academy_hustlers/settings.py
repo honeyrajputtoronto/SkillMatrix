@@ -29,8 +29,8 @@ DEBUG = str(os.environ.get('DEBUG')) == "1" # 1== TRUE
 
 ALLOWED_HOSTS = ['*']
 runserver.default_port = '8002'        # <-- Your port
-# runserver.default_addr = '0.0.0.0'   # <-- Your address
-runserver.default_addr = '127.0.0.2'   # <-- Your address
+runserver.default_addr = '0.0.0.0'   # <-- Your address
+# runserver.default_addr = '127.0.0.2'   # <-- Your address
 
 
 # Application definition
