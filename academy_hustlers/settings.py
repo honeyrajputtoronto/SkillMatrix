@@ -27,7 +27,7 @@ DEBUG = str(os.environ.get('DEBUG')) == "1" # 1== TRUE
 
 # ALLOWED_HOSTS = ["127.0.0.1", "localhost" ,"healthy-memory-production.up.railway.app"]
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['127.0.0.1:8000' ,'healthy-memory-production.up.railway.app']
 runserver.default_port = '8000'        # <-- Your port
 runserver.default_addr = '127.0.0.1'   # <-- Your address
 
