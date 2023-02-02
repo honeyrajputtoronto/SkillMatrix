@@ -52,6 +52,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://change.allowed.com",
 ]
 
+CORS_ORIGIN_WHITELIST = ["https://academyhustlers.live",]
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -142,3 +145,4 @@ import os
 STATICFILES_DIRS = os.path.join(BASE_DIR, 'static'),
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
 
+CORS_ORIGIN_ALLOW_ALL = True
