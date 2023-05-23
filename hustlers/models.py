@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser
 
 
 class RegisterHustler(models.Model):
@@ -30,3 +30,25 @@ class RegisterRecruiter(models.Model):
 
     def __str__(self):
         return self.name
+    
+    
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+
+class Question(models.Model):
+    question = models.CharField(max_length=255)
+    answers = models.JSONField()
+    correct_ans = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.question
+    
+    
+class Game(models.Model):
+    pincode = models.CharField(max_length=6)
+    def __str__(self):
+        return "Game: pincode: " + self.pincode
+    
+    
+    

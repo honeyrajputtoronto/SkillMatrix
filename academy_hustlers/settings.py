@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 from django.core.management.commands.runserver import Command as runserver
 from pathlib import Path
-import os
+import os, socket
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,8 +28,11 @@ DEBUG = str(os.environ.get('DEBUG')) == "1" # 1== TRUE
 # ALLOWED_HOSTS = ["127.0.0.1", "localhost" ,"healthy-memory-production.up.railway.app"]
 
 ALLOWED_HOSTS = ['*']
+
+IP = "127.0.0.1"
+
 runserver.default_port = '8002'        # <-- Your port
-runserver.default_addr = '0.0.0.0'   # <-- Your address
+runserver.default_addr = IP   # <-- Your address
 # runserver.default_addr = '127.0.0.2'   # <-- Your address
 
 
@@ -45,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'hustlers',
     'rest_framework',
+    'knox',
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -68,6 +72,9 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'academy_hustlers.urls'
+
+# AUTH_USER_MODEL = 'hustlers.User'  # Replace 'yourapp' with the name of your app
+
 
 TEMPLATES = [
     {
@@ -146,3 +153,11 @@ STATICFILES_DIRS = os.path.join(BASE_DIR, 'static'),
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        'knox.auth.TokenAuthentication',
+    ]
+}
