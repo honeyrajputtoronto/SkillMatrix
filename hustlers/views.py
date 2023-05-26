@@ -1,13 +1,13 @@
 from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
 from .serializers import RegisterHustlerSerializer, RegisterRecruiterSerializer
-from .models import RegisterRecruiter, RegisterHustler, User, Question
+from .models import RegisterRecruiter, RegisterHustler, User, Question, competition
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from .serializers import UserSerializer, RegisterSerializer, QuestionSerializer
+from .serializers import UserSerializer, RegisterSerializer, QuestionSerializer, CompetitionSerializer
 from knox.models import AuthToken
 from rest_framework import generics, permissions
 from django.contrib.auth import login
@@ -24,6 +24,8 @@ from academy_hustlers.settings import IP
 from datetime import datetime, timedelta
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.utils.crypto import get_random_string
+
     
 
 # IP = socket.gethostbyname(socket.gethostname())
@@ -81,7 +83,6 @@ class LoginAPI(KnoxLoginView):
         return super(LoginAPI, self).post(request, format=None)
     
 #-----------------------creating questions----------
-
 class QuestionView(APIView):
     def get(self, request):
         questions = Question.objects.all()
@@ -122,6 +123,22 @@ class QuestionRetrieveUpdateDeleteView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+#------------------competition pages--------------
+class CompetitionPages(APIView):
+    def get(self, request):
+        competitions = competition.objects.all()
+        serializer = CompetitionSerializer(competitions, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = CompetitionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+#-----------GETTING ALL THE ACTIVE USERS----------
 class GetActiveUsers(generics.ListAPIView):
     serializer_class = UserSerializer  # Replace with your serializer class
 
@@ -173,14 +190,33 @@ class UserPairView(generics.ListAPIView):
     serializer_class = UserSerializer
 
     def get_queryset(self):
-        users = User.objects.all()  # Convert QuerySet to a list
-        print('users', users)
-        # pairs = create_user_pairs(users)
-        # print('pairs', pairs)
-        return users
+        users = list(User.objects.all().values())  # Convert QuerySet to a list
+        pairs = create_user_pairs(users)
+        return pairs
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        print(serializer.data)
-        return Response(serializer.data)
+        # queryset = self.get_queryset()
+        # serializer = self.get_serializer(queryset, many=True)
+        # serialized_data = serializer.data
+        list_01 = self.get_queryset()
+        id_list = [item["id"] for item in list_01]
+        
+        for item in list_01:
+            pair_id = item["id"]
+            games[pair_id] = []
+
+        return JsonResponse(list_01, safe=False)
+    
+games = {}
+    
+class CreateView(APIView):
+    def get(self, request):
+        user_pair_view = UserPairView()
+        data = user_pair_view.get_queryset()
+        # print('data', data)
+        
+        for item in data:
+            pair_id = item["id"]
+            games[pair_id] = []
+            
+        return JsonResponse({"games": games})
