@@ -1,13 +1,13 @@
 from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
 from .serializers import RegisterHustlerSerializer, RegisterRecruiterSerializer
-from .models import RegisterRecruiter, RegisterHustler, User, Question, competition
+from .models import RegisterRecruiter, RegisterHustler, User, Question, competition, SavedAnswers, Participant
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from .serializers import UserSerializer, RegisterSerializer, QuestionSerializer, CompetitionSerializer
+from .serializers import UserSerializer, RegisterSerializer, QuestionSerializer, CompetitionSerializer, SavedAnswersSerializer, ParticipantSerializer
 from knox.models import AuthToken
 from rest_framework import generics, permissions
 from django.contrib.auth import login
@@ -16,6 +16,9 @@ from knox.views import LoginView as KnoxLoginView
 from rest_framework.views import APIView
 import socket
 import json
+from django.db import transaction
+
+import string
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.middleware.csrf import get_token
@@ -25,6 +28,10 @@ from datetime import datetime, timedelta
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+import math
+from knox.auth import TokenAuthentication
+
+
 
     
 
@@ -118,6 +125,7 @@ class QuestionRetrieveUpdateDeleteView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
+        print('delete')
         question = self.get_object(pk)
         question.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -125,6 +133,10 @@ class QuestionRetrieveUpdateDeleteView(APIView):
 
 #------------------competition pages--------------
 class CompetitionPages(APIView):
+    
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request):
         competitions = competition.objects.all()
         serializer = CompetitionSerializer(competitions, many=True)
@@ -161,36 +173,69 @@ def create_user_pairs(users):
     random.shuffle(users)  # Shuffle the users randomly
 
     num_users = len(users)
-    num_pairs = num_users // 2
+    # print(len(users))
+    # num_pairs = num_users // 2
+    num_pairs = math.ceil(num_users / 2)
+
+    # print('num_pairs', num_pairs)
 
     pairs = []
-
+    print('users yaha hai', users)
     for i in range(num_pairs):
-        user1 = users[i * 2]['username']  # Access the 'username' field from the dictionary
-        user2 = users[i * 2 + 1]['username']  # Access the 'username' field from the dictionary
+        username1 = users[i * 2]['user__username']  # Access the 'username' field from the dictionary
+        # user2 = users[i * 2 + 1]['username']  # Access the 'username' field from the dictionary
+        
+        if (i * 2 + 1) < num_users:
+            username2 = users[i * 2 + 1]['user__username']  # Access the 'username' field from the dictionary
+        else:
+            username2 = 'Computer Player'  # Replace 'Hardcoded User' with the desired username
 
-        pair_id = random.randint(1000, 9999)  # Generate a random ID for the pair
+
+        pair_id = ''.join(random.choice(string.ascii_uppercase) for _ in range(1)) + str(random.randint(1000, 9999))
 
         pair = {
-            'id': pair_id,
-            'users': [user1, user2]
+            'match_id': pair_id,
+            'users': [username1, username2]
         }
-
+        
+        # pair = pairs.objects.create(match_id=pair_id, user1=user1, user2=user2)
+        
         pairs.append(pair)
-
-    # If there is an odd number of users, add the last user to a pair alone
-    if num_users % 2 != 0:
-        last_user = users[num_pairs * 2]['username']  # Access the 'username' field from the dictionary
-        pairs[-1]['users'].append(last_user)
 
     return pairs
 
 
+# class UserPairView(generics.ListAPIView):
+#     serializer_class = UserSerializer
+
+#     def get_queryset(self):
+#         users = list(User.objects.all().values())  # Convert QuerySet to a list
+#         pairs = create_user_pairs(users)
+#         # print(pairs)
+#         return pairs
+
+#     def list(self, request, *args, **kwargs):
+#         # queryset = self.get_queryset()
+#         # serializer = self.get_serializer(queryset, many=True)
+#         # serialized_data = serializer.data
+#         list_01 = self.get_queryset()
+#         id_list = [item["match_id"] for item in list_01]
+        
+#         for item in list_01:
+#             pair_id = item["match_id"]
+#             games[pair_id] = []
+#         return JsonResponse(list_01, safe=False)
+
+
 class UserPairView(generics.ListAPIView):
-    serializer_class = UserSerializer
+    serializer_class = ParticipantSerializer
 
     def get_queryset(self):
-        users = list(User.objects.all().values())  # Convert QuerySet to a list
+        users = list(
+            Participant.objects.select_related('user')
+            .values('participant_id', 'user__username', 'competition_id', 'level')
+        )            
+        print('users pairview', users)
         pairs = create_user_pairs(users)
         return pairs
 
@@ -199,13 +244,13 @@ class UserPairView(generics.ListAPIView):
         # serializer = self.get_serializer(queryset, many=True)
         # serialized_data = serializer.data
         list_01 = self.get_queryset()
-        id_list = [item["id"] for item in list_01]
+        id_list = [item["match_id"] for item in list_01]
         
         for item in list_01:
-            pair_id = item["id"]
+            pair_id = item["match_id"]
             games[pair_id] = []
-
         return JsonResponse(list_01, safe=False)
+
     
 games = {}
     
@@ -220,3 +265,51 @@ class CreateView(APIView):
             games[pair_id] = []
             
         return JsonResponse({"games": games})
+    
+    
+    
+class SavedAnswersViews(APIView):
+    def get(self, request):
+        saved_answers = SavedAnswers.objects.all()
+        serializer = SavedAnswersSerializer(saved_answers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = SavedAnswersSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+class ParticipantViews(APIView):
+    def get(self, request):
+        participant = Participant.objects.all()
+        serializer = ParticipantSerializer(participant, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = ParticipantSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request):
+        participants = Participant.objects.all()
+        participants.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    
+class ScoreView(APIView):
+    def get(self, request):
+        saved_answers = SavedAnswers.objects.all()
+        serializer = SavedAnswersSerializer(saved_answers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = SavedAnswersSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,4 +1,4 @@
-from .models import RegisterHustler, RegisterRecruiter, Question, competition
+from .models import RegisterHustler, RegisterRecruiter, Question, competition, Participant, SavedAnswers, Pair
 from rest_framework import serializers
 from django.contrib.auth.models import User
 import random
@@ -22,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('participant_id', 'username', 'email')
+        fields = ('participant_id', 'username', 'email', 'id')
 
     def get_participant_id(self, obj):
         random_number = ''.join(random.choice(string.digits) for _ in range(4))
@@ -61,3 +61,25 @@ class CompetitionSerializer(serializers.ModelSerializer):
     class Meta:
         model = competition
         fields = '__all__'
+        
+        
+
+class ParticipantSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = Participant
+        fields = ['participant_id', 'level', 'user', 'competition', 'username']
+        
+        
+        
+class SavedAnswersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedAnswers
+        fields = '__all__'
+        
+        
+class PairSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pair
+        fields = ['match_id', 'user1', 'user2', 'username1', 'username2', 'competition_id']

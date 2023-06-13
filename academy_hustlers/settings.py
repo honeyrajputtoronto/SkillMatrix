@@ -27,11 +27,13 @@ DEBUG = str(os.environ.get('DEBUG')) == "1" # 1== TRUE
 
 # ALLOWED_HOSTS = ["127.0.0.1", "localhost" ,"healthy-memory-production.up.railway.app"]
 
+# AUTH_USER_MODEL = 'hustlers.customuser'
+
 ALLOWED_HOSTS = ['*']
 
 IP = "127.0.0.1"
 
-runserver.default_port = '8002'        # <-- Your port
+runserver.default_port = '8003'        # <-- Your port
 runserver.default_addr = IP   # <-- Your address
 # runserver.default_addr = '127.0.0.2'   # <-- Your address
 
@@ -156,7 +158,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
         'knox.auth.TokenAuthentication',
     ]

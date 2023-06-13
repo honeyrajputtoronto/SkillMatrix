@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.conf.urls import include, url
-from hustlers.views import RegisterHustlerViewSet, RegisterRecruiterViewSet, RegisterAPI, LoginAPI, QuestionView, QuestionRetrieveUpdateDeleteView, GetActiveUsers, UserPairView,CreateView, CompetitionPages
+from hustlers.views import RegisterHustlerViewSet, RegisterRecruiterViewSet, RegisterAPI, LoginAPI, QuestionView, QuestionRetrieveUpdateDeleteView, GetActiveUsers, UserPairView,CreateView, CompetitionPages, SavedAnswersViews, ScoreView, ParticipantViews
 from rest_framework.routers import DefaultRouter
 from django.urls import path
 from django.views.generic import RedirectView
@@ -15,7 +15,7 @@ from knox import views as knox_views
 # urlpatterns = [
 #     url(r'^admin/', admin.site.urls),
 #     url(r'^', include(router.urls)),
-# ]
+# ]s
 
 urlpatterns = [
     path('', RedirectView.as_view(pattern_name='register')),
@@ -26,13 +26,23 @@ urlpatterns = [
     path('login/', LoginAPI.as_view(), name='login'),
     path('logout/', knox_views.LogoutView.as_view(), name='logout'),
     path('logoutall/', knox_views.LogoutAllView.as_view(), name='logoutall'),
+    
     path("competition/", CompetitionPages.as_view(), name="competition"),
+    
+    # path("saved_answers/", SavedAnswersViews.as_view(), name="saved_answers"),
 
     path("questions/", QuestionView.as_view(), name="questions"),
-    path('questions/<int:pk>/', QuestionRetrieveUpdateDeleteView.as_view(), name='question-detail'),
+    path('questions/<uuid:pk>/', QuestionRetrieveUpdateDeleteView.as_view(), name='question-detail'),
+    
     # path("joincompetition/", JoinCompetition, name="joincompetition"),
+    
     path("getactiveusers/", GetActiveUsers.as_view(), name="getactiveusers"),
+    
     path("userpairview/", UserPairView.as_view(), name="userpairview"),
-    path('create/', CreateView.as_view(), name='createpage')
+    # path('create/', CreateView.as_view(), name='createpage')
+    
+    path("scoreview/", ScoreView.as_view(), name="scoreview"),
+    
+    path("participantview/", ParticipantViews.as_view(), name="participantview")
 
 ]
