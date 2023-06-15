@@ -31,7 +31,7 @@ DEBUG = str(os.environ.get('DEBUG')) == "1" # 1== TRUE
 
 ALLOWED_HOSTS = ['*']
 
-IP = "3.21.171.8"
+IP = "0.0.0.0"
 
 runserver.default_port = '8003'        # <-- Your port
 runserver.default_addr = IP   # <-- Your address
