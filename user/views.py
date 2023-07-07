@@ -9,12 +9,14 @@ from .serializers import RegisterSerializer, ParticipantSerializer
 import random,math,string,uuid
 from rest_framework import generics
 from .models import Participant,Pair
+from competion.models import  Competition
 from django.http import JsonResponse
 from django.db.models import Max
 from .serializers import PairSerializer
 from django.contrib.auth import logout
 from rest_framework.permissions import IsAuthenticated
-from logout_tokens.models import TokenBlacklist
+import datetime
+# from logout_tokens.models import TokenBlacklist
 
 
 
@@ -81,14 +83,36 @@ class RegisterAPI(APIView):
 
 
 class PairView(APIView):
-    
-    def get(self,request):
-        queryset = Pair.objects.all()
-        serializer = PairSerializer(queryset,many = True)
-        return Response({"pairs":serializer.data},status=status.HTTP_200_OK)
-    
-    def ge(self,request):
-        serializer = 
+
+    # def get(self, request):
+    #
+    #     queryset = Pair.objects.all()
+    #     serializer = PairSerializer(queryset,many = True)
+    #     return Response({"pairs":serializer.data},status=status.HTTP_200_OK)
+    #
+    def post(self,request):
+        query = Participant.objects.values('participant_id','competition')
+        query_all = Participant.objects.all()
+        # print(query)
+        # print(query_all)
+        pairs = []
+        for i in range(0, len(query),2):
+            # participant = Participant.objects.get(participant_id=query[i]['participant_id'])
+            # print(Participant.objects.get(participant_id=query[i]['participant_id']))
+            # print(Competition.objects.get(competition_id=query[i]['competition']) or None)
+        #     print(i)
+            pair = Pair.objects.create(
+                participant1=Participant.objects.get(participant_id=query[i]['participant_id']) or None,
+                participant2=Participant.objects.get(participant_id=query[i+1]['participant_id']) or None,
+                competition=Competition.objects.get(competition_id=query[i]['competition']) or None,
+
+            )
+            serializer = PairSerializer(pairs, many=True)
+            pairs.append(pair)
+        return Response(
+            {'pair': serializer.data}
+        )
+
 
 
 
@@ -105,7 +129,6 @@ class ParticipantViews(APIView):
 
         if current_time < threshold_time:
             return Response({'detail': 'The quiz is not yet started.'}, status=status.HTTP_400_BAD_REQUEST)
-        
 
         serializer = ParticipantSerializer(data=request.data)
         if serializer.is_valid():
@@ -124,20 +147,20 @@ def winner(request):
 
 
 
-class LogoutAPI(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        # Get the token from the request
-        token = request.data.get('token')
-
-        # Add the token to the blacklist
-        TokenBlacklist.objects.create(token=token)
-
-        # Perform logout
-        logout(request)
-
-        return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)
+# class LogoutAPI(APIView):
+#     permission_classes = [IsAuthenticated]
+#
+#     def post(self, request):
+#         # Get the token from the request
+#         token = request.data.get('token')
+#
+#         # Add the token to the blacklist
+#         TokenBlacklist.objects.create(token=token)
+#
+#         # Perform logout
+#         logout(request)
+#
+#         return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)
 
 
 #pairs script
@@ -154,3 +177,4 @@ class LogoutAPI(APIView):
 #            pairs.append((last_participant, None))
 #
 #        return Response({'pairs': pairs})
+

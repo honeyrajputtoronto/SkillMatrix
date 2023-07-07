@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     'user',
     'question',
     'competion',
-    'logout_tokens',
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -75,7 +74,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'logout_tokens.middleware.LogoutTokenMiddleware',
+    # 'logout_tokens.middleware.LogoutTokenMiddleware',
 ]
 
 ROOT_URLCONF = 'academy_hustlers.urls'

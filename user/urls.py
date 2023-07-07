@@ -8,6 +8,6 @@ urlpatterns = [
     path("winner/", winner, name="winner"),
     path("pair/", PairView.as_view(), name="userpairview"),
     path("participantview/", ParticipantViews.as_view(), name="participantview"),
-    path('logout/', LogoutAPI.as_view(), name='logout'),
+    # path('logout/', LogoutAPI.as_view(), name='logout'),
 
 ]
