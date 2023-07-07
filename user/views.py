@@ -99,7 +99,14 @@ class ParticipantViews(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request):
-        # implement time check 
+       # Implement time check
+        current_time = datetime.datetime.now().time()
+        threshold_time = datetime.time(hour=12, minute=0, second=0)  # Set the threshold time here (e.g., 12:00:00)
+
+        if current_time < threshold_time:
+            return Response({'detail': 'The quiz is not yet started.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
         serializer = ParticipantSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -115,9 +122,7 @@ def winner(request):
     # implement winner logic here
     return JsonResponse({'winner_user':'200'},status=status.HTTP_200_OK)
 
-# implement logout 
-# blacklist token
-# logout function 
+
 
 class LogoutAPI(APIView):
     permission_classes = [IsAuthenticated]
