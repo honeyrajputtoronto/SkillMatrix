@@ -52,10 +52,22 @@ class PairSerializer(serializers.ModelSerializer):
         
         
 class ParticipantSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', read_only=True)
+    # username = serializers.CharField(source='user.username', read_only=True)
 
     class Meta:
         model = Participant
-        fields = ['participant_id', 'level', 'user', 'competition', 'username']
+        fields = '__all__'
+
+class ScoreSerializer(serializers.Serializer):
+    participant_id = serializers.UUIDField
+    Score = serializers.IntegerField()
+
+    def update(self, instance, validated_data):
+        instance.Score = validated_data.get('Score', instance.Score)
+        # Update other fields as needed
+        instance.save()
+        return instance
+
+
         
         

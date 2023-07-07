@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.response import Response
-from .serializers import RegisterSerializer, ParticipantSerializer
+from .serializers import RegisterSerializer, ParticipantSerializer,ScoreSerializer
 import random,math,string,uuid
 from rest_framework import generics
 from .models import Participant,Pair
@@ -13,6 +13,8 @@ from competion.models import  Competition
 from django.http import JsonResponse
 from django.db.models import Max
 from .serializers import PairSerializer
+from rest_framework.renderers import JSONRenderer
+from rest_framework.decorators import api_view
 from django.contrib.auth import logout
 from rest_framework.permissions import IsAuthenticated
 import datetime
@@ -72,7 +74,7 @@ class RegisterAPI(APIView):
         serializer = RegisterSerializer(data=request.data)
         # checking for validations if there will be any exception then raise the exception
         if serializer.is_valid(raise_exception=True):
-             # saving user with requested data
+            # saving user with requested data
             user =  serializer.save()
             # getting tokens from helper function
             token = get_tokens_for_user(user)
@@ -84,12 +86,6 @@ class RegisterAPI(APIView):
 
 class PairView(APIView):
 
-    # def get(self, request):
-    #
-    #     queryset = Pair.objects.all()
-    #     serializer = PairSerializer(queryset,many = True)
-    #     return Response({"pairs":serializer.data},status=status.HTTP_200_OK)
-    #
     def post(self,request):
         query = list(Participant.objects.values('participant_id','competition'))
 
@@ -150,47 +146,56 @@ class ParticipantViews(APIView):
 def level(request):
     return JsonResponse({'num_of_levels':Participant.levels()},status=status.HTTP_200_OK)
 
-def winner(request):
-    # implement winner logic here
-    return JsonResponse({'winner_user':'200'},status=status.HTTP_200_OK)
+
 
 
 class ScoreView(APIView):
+
     def get(self,request):
-        query = Participant.objects.all().values('Score')
+        query = Participant.objects.all().values('Score','participant_id')
         print(query)
-        serializer = ParticipantSerializer()
+        return Response({'score':query},status = status.HTTP_200_OK)
+# def Scoreput(request,uuid):
+#     participant = Participant.objects.get(participant_id=uuid)
+#     print(participant)
+#     serializer = ScoreSerializer(participant,data=request.data)
+#     print(participant)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data)
+#     return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+@api_view(['PUT'])
+def scoreput(request, uuid):
+    try:
+        participant = Participant.objects.get(participant_id=uuid)
+        serializer = ScoreSerializer(participant, data=request.data)
 
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# class LogoutAPI(APIView):
-#     permission_classes = [IsAuthenticated]
-#
-#     def post(self, request):
-#         # Get the token from the request
-#         token = request.data.get('token')
-#
-#         # Add the token to the blacklist
-#         TokenBlacklist.objects.create(token=token)
-#
-#         # Perform logout
-#         logout(request)
-#
-#         return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)
-
-
-#pairs script
-# num_participants = len(participants)
-#        pairs = []
-#
-#        if num_participants % 2 == 0:
-#            # If the number of participants is even, create pairs directly
-#            pairs = [(serializer.data[i], serializer.data[i + 1]) for i in range(0, num_participants, 2)]
-#        else:
-#            # If the number of participants is odd, distribute pairs as evenly as possible
-#            last_participant = serializer.data[-1]
-#            pairs = [(serializer.data[i], serializer.data[i + 1]) for i in range(0, num_participants - 1, 2)]
-#            pairs.append((last_participant, None))
-#
-#        return Response({'pairs': pairs})
+    except Participant.DoesNotExist:
+        return Response({'error': 'Participant not found.'}, status=status.HTTP_404_NOT_FOUND)
+@api_view(['POSt'])
+def winner(request,uuid):
+    # implement winner logic here
+    pair = Pair.objects.get(match_id = uuid)
+    scores = [pair.participant1.Score,pair.participant2.Score]
+    winner_score = max(scores)
+    print(winner_score)
+    if scores.index(winner_score) == 0:
+        pair.winner = pair.participant1
+        pair.save()
+    elif scores.index(winner_score) == 1:
+        pair.winner = pair.participant2
+        pair.save()
+    return Response({
+        'competition':pair.competition.competition_id,
+        'match_id':pair.match_id,
+        'winner_user': pair.winner.participant_id,
+        'username':pair.winner.user.username,
+        'score':winner_score},
+        status=status.HTTP_201_CREATED)
 
