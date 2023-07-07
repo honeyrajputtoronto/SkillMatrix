@@ -91,26 +91,37 @@ class PairView(APIView):
     #     return Response({"pairs":serializer.data},status=status.HTTP_200_OK)
     #
     def post(self,request):
-        query = Participant.objects.values('participant_id','competition')
-        query_all = Participant.objects.all()
-        # print(query)
+        query = list(Participant.objects.values('participant_id','competition'))
+
         # print(query_all)
         pairs = []
-        for i in range(0, len(query),2):
-            # participant = Participant.objects.get(participant_id=query[i]['participant_id'])
-            # print(Participant.objects.get(participant_id=query[i]['participant_id']))
-            # print(Competition.objects.get(competition_id=query[i]['competition']) or None)
-        #     print(i)
-            pair = Pair.objects.create(
-                participant1=Participant.objects.get(participant_id=query[i]['participant_id']) or None,
-                participant2=Participant.objects.get(participant_id=query[i+1]['participant_id']) or None,
-                competition=Competition.objects.get(competition_id=query[i]['competition']) or None,
+        if len(query) % 2 != 0 :
+            query.append(None)
 
-            )
-            serializer = PairSerializer(pairs, many=True)
-            pairs.append(pair)
+        for i in range(0, len(query),2):
+
+            participant1_id = query[i]['participant_id']
+            participant2_id = query[i + 1]['participant_id'] if query[i + 1] is not None else None
+
+            try:
+                participant1 = Participant.objects.get(participant_id=participant1_id)
+                participant2 = Participant.objects.get(participant_id=participant2_id) if participant2_id is not None else None
+                competition = Competition.objects.get(competition_id=query[i]['competition'])
+
+                pair = Pair.objects.create(
+                    participant1=participant1,
+                    participant2=participant2,
+                    competition=competition
+                )
+                serializer = PairSerializer(pairs, many=True)
+                pairs.append(pair)
+            except Exception as e:
+                print(e)
+                return Response(
+                    {'error': str(e)}, status=status.HTTP_400_BAD_REQUEST
+                )
         return Response(
-            {'pair': serializer.data}
+            {'pair': serializer.data}, status=status.HTTP_201_CREATED
         )
 
 
@@ -126,10 +137,8 @@ class ParticipantViews(APIView):
        # Implement time check
         current_time = datetime.datetime.now().time()
         threshold_time = datetime.time(hour=12, minute=0, second=0)  # Set the threshold time here (e.g., 12:00:00)
-
         if current_time < threshold_time:
             return Response({'detail': 'The quiz is not yet started.'}, status=status.HTTP_400_BAD_REQUEST)
-
         serializer = ParticipantSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -144,6 +153,13 @@ def level(request):
 def winner(request):
     # implement winner logic here
     return JsonResponse({'winner_user':'200'},status=status.HTTP_200_OK)
+
+
+class ScoreView(APIView):
+    def get(self,request):
+        query = Participant.objects.all().values('Score')
+        print(query)
+        serializer = ParticipantSerializer()
 
 
 
