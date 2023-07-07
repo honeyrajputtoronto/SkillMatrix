@@ -1,10 +1,10 @@
 from django.contrib import admin
 from django.conf.urls import include, url
-from hustlers.views import  GetActiveUsers
+from hustlers.views import get_current_time
 from rest_framework.routers import DefaultRouter
 from django.urls import path,include
 from django.views.generic import RedirectView
-from knox import views as knox_views
+
 
 
 
@@ -14,13 +14,12 @@ urlpatterns = [
     path('',include('user.urls')),
     path('',include('question.urls')),
     path('',include('competion.urls')),
-    # path('register/', RegisterAPI.as_view(), name='register'),
-    # path('login/', LoginAPI.as_view(), name='login'),
-    path('logout/', knox_views.LogoutView.as_view(), name='logout'),
-    path('logoutall/', knox_views.LogoutAllView.as_view(), name='logoutall'),
+    path('time/', get_current_time, name='get_current_time'),
+    # path('logout/', knox_views.LogoutView.as_view(), name='logout'),
+    # path('logoutall/', knox_views.LogoutAllView.as_view(), name='logoutall'),
     
     
-    path("getactiveusers/", GetActiveUsers.as_view(), name="getactiveusers"),
+    # path("getactiveusgeters/", GetActiveUsers.as_view(), name="getactiveusers"),
     
     
 

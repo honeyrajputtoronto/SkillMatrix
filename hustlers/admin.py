@@ -8,7 +8,7 @@ from django.contrib.auth.models import Group
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['pk', 'name', 'company_name', 'skills']
 
-# admin.site.unregister(Group)
+admin.site.unregister(Group)
 
 admin.site.site_header = 'Product Review Admin'
 

@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     'user',
     'question',
     'competion',
-    'knox'
 ]
 
 CORS_ALLOWED_ORIGINS = [

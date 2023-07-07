@@ -48,7 +48,7 @@ class UserSerializer(serializers.ModelSerializer):
 class PairSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pair
-        fields = ['match_id', 'user1', 'user2', 'username1', 'username2', 'competition_id']
+        fields = ['match_id', 'participant1', 'participant2', 'username1', 'username2', 'competition_id']
         
         
 class ParticipantSerializer(serializers.ModelSerializer):
