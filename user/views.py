@@ -12,6 +12,11 @@ from .models import Participant,Pair
 from django.http import JsonResponse
 from django.db.models import Max
 from .serializers import PairSerializer
+from django.contrib.auth import logout
+from rest_framework.permissions import IsAuthenticated
+from logout_tokens.models import TokenBlacklist
+
+
 
 # Create your views here.
 
@@ -113,3 +118,18 @@ def winner(request):
 # implement logout 
 # blacklist token
 # logout function 
+
+class LogoutAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Get the token from the request
+        token = request.data.get('token')
+
+        # Add the token to the blacklist
+        TokenBlacklist.objects.create(token=token)
+
+        # Perform logout
+        logout(request)
+
+        return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)
