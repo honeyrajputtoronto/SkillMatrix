@@ -133,3 +133,19 @@ class LogoutAPI(APIView):
         logout(request)
 
         return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)
+
+
+#pairs script
+# num_participants = len(participants)
+#        pairs = []
+#
+#        if num_participants % 2 == 0:
+#            # If the number of participants is even, create pairs directly
+#            pairs = [(serializer.data[i], serializer.data[i + 1]) for i in range(0, num_participants, 2)]
+#        else:
+#            # If the number of participants is odd, distribute pairs as evenly as possible
+#            last_participant = serializer.data[-1]
+#            pairs = [(serializer.data[i], serializer.data[i + 1]) for i in range(0, num_participants - 1, 2)]
+#            pairs.append((last_participant, None))
+#
+#        return Response({'pairs': pairs})
