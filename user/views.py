@@ -107,7 +107,6 @@ class PairView(APIView):
                     competition=competition
                 )
                 pairs.append({
-                    'id': pair.id,
                     'participant1': participant1_id,
                     'participant2': participant2_id,
                     'competition': query[i]['competition']
@@ -117,6 +116,7 @@ class PairView(APIView):
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'pair': pairs}, status=status.HTTP_201_CREATED)
+
 
 
 
