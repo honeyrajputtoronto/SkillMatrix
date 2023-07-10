@@ -83,19 +83,16 @@ class RegisterAPI(APIView):
         return Response(serializer.data,status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class PairView(APIView):
 
-    def post(self,request):
-        query = list(Participant.objects.values('participant_id','competition'))
+    def post(self, request):
+        query = list(Participant.objects.values('participant_id', 'competition'))
 
-        # print(query_all)
         pairs = []
-        if len(query) % 2 != 0 :
+        if len(query) % 2 != 0:
             query.append(None)
 
-        for i in range(0, len(query),2):
-
+        for i in range(0, len(query), 2):
             participant1_id = query[i]['participant_id']
             participant2_id = query[i + 1]['participant_id'] if query[i + 1] is not None else None
 
@@ -109,16 +106,18 @@ class PairView(APIView):
                     participant2=participant2,
                     competition=competition
                 )
-                serializer = PairSerializer(pairs, many=True)
-                pairs.append(pair)
+                pairs.append({
+                    'id': pair.id,
+                    'participant1': participant1_id,
+                    'participant2': participant2_id,
+                    'competition': query[i]['competition']
+                })
             except Exception as e:
                 print(e)
-                return Response(
-                    {'error': str(e)}, status=status.HTTP_400_BAD_REQUEST
-                )
-        return Response(
-            {'pair': serializer.data}, status=status.HTTP_201_CREATED
-        )
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'pair': pairs}, status=status.HTTP_201_CREATED)
+
 
 
 
