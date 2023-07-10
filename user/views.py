@@ -47,6 +47,7 @@ class LoginAPI(APIView):
 
         # Authenticate the user
         user = authenticate(username=username, password=password)
+        
 
         if user is not None:
             # Generate JWT tokens
@@ -57,6 +58,7 @@ class LoginAPI(APIView):
             return Response({
                 'access_token': access_token,
                 'refresh_token': str(refresh),
+                'user_id': user.id,
                 
             }, status=status.HTTP_200_OK)
         else:
@@ -150,9 +152,7 @@ class ParticipantViews(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-'''calculating number of levels in a competition'''
-def level(request):
-    return JsonResponse({'num_of_levels':Participant.levels()},status=status.HTTP_200_OK)
+
 
 
 
@@ -163,15 +163,7 @@ class ScoreView(APIView):
         query = Participant.objects.all().values('Score','participant_id')
         print(query)
         return Response({'score':query},status = status.HTTP_200_OK)
-# def Scoreput(request,uuid):
-#     participant = Participant.objects.get(participant_id=uuid)
-#     print(participant)
-#     serializer = ScoreSerializer(participant,data=request.data)
-#     print(participant)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data)
-#     return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['PUT'])
 def scoreput(request, uuid):
     try:

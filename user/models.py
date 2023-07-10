@@ -24,10 +24,10 @@ class Participant(models.Model):
 '''User pair model in a GAME'''
 class Pair(models.Model):
     match_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    participant1 = models.ForeignKey(Participant, on_delete=models.CASCADE,related_name='participant1',default=None,null=True)
-    participant2 = models.ForeignKey(Participant, on_delete=models.CASCADE,related_name='participant2',default=None,null=True)
+    player = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='player', default=None, null=True)
+    opponent = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='opponent', default=None, null=True)
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE, default=None)
-    winner = models.ForeignKey(Participant, on_delete=models.CASCADE,related_name='winner',default=None,null=True)
+    winner = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='winner', default=None, null=True)
 
 
     
