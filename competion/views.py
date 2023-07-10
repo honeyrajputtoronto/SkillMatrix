@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 class CompetitionPages(APIView):
     
     # authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     
     def get(self, request):
         competitions = Competition.objects.all()

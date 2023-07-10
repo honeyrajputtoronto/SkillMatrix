@@ -84,7 +84,6 @@ class RegisterAPI(APIView):
 
 
 class PairView(APIView):
-
     def post(self, request):
         query = list(Participant.objects.values('participant_id', 'competition'))
 
@@ -101,21 +100,31 @@ class PairView(APIView):
                 participant2 = Participant.objects.get(participant_id=participant2_id) if participant2_id is not None else None
                 competition = Competition.objects.get(competition_id=query[i]['competition'])
 
-                pair = Pair.objects.create(
-                    participant1=participant1,
-                    participant2=participant2,
-                    competition=competition
-                )
-                pairs.append({
-                    'participant1': participant1_id,
-                    'participant2': participant2_id,
+                pair = {
+                    'player': participant1_id,
+                    'opponent': participant2_id,
                     'competition': query[i]['competition']
-                })
+                }
+
+                if participant2_id is not None:
+                    reverse_pair = {
+                        'player': participant2_id,
+                        'opponent': participant1_id,
+                        'competition': query[i]['competition']
+                    }
+                    pairs.append(reverse_pair)
+
+                Pair.objects.create(participant1=participant1, participant2=participant2, competition=competition)
+
+                pairs.append(pair)
+
             except Exception as e:
                 print(e)
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'pair': pairs}, status=status.HTTP_201_CREATED)
+
+
 
 
 
