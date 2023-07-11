@@ -46,18 +46,23 @@ class UserSerializer(serializers.ModelSerializer):
     
     
 class PairSerializer(serializers.ModelSerializer):
+    participant1 = serializers.PrimaryKeyRelatedField(source='player', queryset=Participant.objects.all())
+    participant2 = serializers.PrimaryKeyRelatedField(source='opponent', queryset=Participant.objects.all())
+
     class Meta:
         model = Pair
         fields = ['match_id', 'participant1', 'participant2', 'competition']
         
         
 class ParticipantSerializer(serializers.ModelSerializer):
+    #class Meta:
+        ##exclude = ['level']
     # username = serializers.CharField(source='user.username', read_only=True)
 
     class Meta:
         model = Participant
         #fields = '__all__'
-        exclude = ['Score']
+        exclude = ['Score' , 'level']
 
 class ScoreSerializer(serializers.Serializer):
     participant_id = serializers.UUIDField

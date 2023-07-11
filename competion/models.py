@@ -8,6 +8,9 @@ class Competition(models.Model):
     #time = models.DateTimeField(default=None)
     time = models.CharField(max_length=19, default=None)
     room_time = models.IntegerField(default=None,null=True)
+    level = models.IntegerField(default=0)
+    left_level = models.IntegerField(default=0)
     
     def __str__(self):
         return f"{self.competition_id}"
+    

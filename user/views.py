@@ -1,3 +1,4 @@
+from django.db import models
 from django.shortcuts import render
 from rest_framework.decorators import action
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -85,6 +86,8 @@ class RegisterAPI(APIView):
         return Response(serializer.data,status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
 class PairView(APIView):
     def post(self, request):
         query = list(Participant.objects.values('participant_id', 'competition'))
@@ -101,8 +104,11 @@ class PairView(APIView):
                 participant1 = Participant.objects.get(participant_id=participant1_id)
                 participant2 = Participant.objects.get(participant_id=participant2_id) if participant2_id is not None else None
                 competition = Competition.objects.get(competition_id=query[i]['competition'])
+                
+                new_pair= Pair.objects.create(player=participant1, opponent=participant2, competition=competition)
 
                 pair = {
+                    'match_id': new_pair.match_id,
                     'player': participant1_id,
                     'opponent': participant2_id,
                     'competition': query[i]['competition']
@@ -110,13 +116,14 @@ class PairView(APIView):
 
                 if participant2_id is not None:
                     reverse_pair = {
+                        'match_id': new_pair.match_id,
                         'player': participant2_id,
                         'opponent': participant1_id,
                         'competition': query[i]['competition']
                     }
                     pairs.append(reverse_pair)
 
-                Pair.objects.create(participant1=participant1, participant2=participant2, competition=competition)
+                
 
                 pairs.append(pair)
 
@@ -198,4 +205,8 @@ def winner(request,uuid):
         'username':pair.winner.user.username,
         'score':winner_score},
         status=status.HTTP_201_CREATED)
+
+
+
+
 
