@@ -1,5 +1,3 @@
-from django.db import models
-from django.shortcuts import render
 from rest_framework.decorators import action
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
@@ -7,14 +5,9 @@ from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.response import Response
 from .serializers import RegisterSerializer, ParticipantSerializer,ScoreSerializer
-import random,math,string,uuid
-from rest_framework import generics
 from .models import Participant,Pair
 from competion.models import  Competition
-from django.http import JsonResponse
 from django.db.models import Max
-from .serializers import PairSerializer
-from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view
 from django.contrib.auth import logout
 from rest_framework.permissions import IsAuthenticated
@@ -24,20 +17,15 @@ import datetime
 
 
 # Create your views here.
+''''''
 
-games = {}
-
-'''Helper function to generate JWT tokens for a user'''
-    
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-    # refresh is a variable holding refresh token 
-    # this function will return a dictionary of refresh and access token
-    return {
-        'refresh':str(refresh),
-        'access':str(refresh.access_token)
-    }
-   
+@api_view(['POST'])
+def tlevel(request,uuid):
+    competition = Competition.objects.get(competition_id = uuid)
+    n = Participant.objects.count()
+    competition.level = competition.levels(n)
+    competition.save()
+    return Response({'total_level':competition.levels(n)},status=status.HTTP_201_CREATED)
 '''API view for user login'''
      
 class LoginAPI(APIView):
@@ -89,9 +77,9 @@ class RegisterAPI(APIView):
 
 
 class PairView(APIView):
-    def post(self, request):
-        query = list(Participant.objects.values('participant_id', 'competition'))
-
+    def post(self, request,level):
+        query = list(Participant.objects.filter(level = level).values('participant_id', 'competition','level'))
+        # print(query)
         pairs = []
         if len(query) % 2 != 0:
             query.append(None)
@@ -104,34 +92,58 @@ class PairView(APIView):
                 participant1 = Participant.objects.get(participant_id=participant1_id)
                 participant2 = Participant.objects.get(participant_id=participant2_id) if participant2_id is not None else None
                 competition = Competition.objects.get(competition_id=query[i]['competition'])
-                
-                new_pair= Pair.objects.create(player=participant1, opponent=participant2, competition=competition)
-
-                pair = {
-                    'match_id': new_pair.match_id,
-                    'player': participant1_id,
-                    'opponent': participant2_id,
-                    'competition': query[i]['competition']
-                }
-
-                if participant2_id is not None:
-                    reverse_pair = {
-                        'match_id': new_pair.match_id,
-                        'player': participant2_id,
-                        'opponent': participant1_id,
-                        'competition': query[i]['competition']
+                # if participant1.participant_id
+                # print('\n\n\n\n')
+                if not Pair.objects.filter(player=participant1, opponent=participant2, competition=competition):
+                    selected_pair= Pair.objects.create(player=participant1, opponent=participant2, competition=competition)
+                    pair = {
+                        # 'match_id': selected_pair.match_id,
+                        'player': participant1_id,
+                        'opponent': participant2_id,
+                        'competition': query[i]['competition'],
+                        'level':participant1.level
                     }
+
+                    if participant2_id is not None:
+                        reverse_pair = {
+                            # 'match_id': selected_pair.match_id,
+                            'player': participant2_id,
+                            'opponent': participant1_id,
+                            'competition': query[i]['competition'],
+                            'level':participant1.level
+                        }
                     pairs.append(reverse_pair)
-
+                    pairs.append(pair)
+                    
+                else:
+                    match = list(Pair.objects.all())
+                    for i in match:
+                        print(i.opponent.user.username if i.opponent else 'computer player')
+                    for i in match:
+                        pairs.append({
+                            'match_id': i.match_id,
+                            'player': i.player.user.username if i.player.user is not None else '',
+                            'opponent': i.opponent.user.username if i.opponent is not None else 'computer player',
+                            'competition': i.competition.competition_id,
+                            'level':i.player.level
+                        })
+                        pairs.append({
+                            'match_id': i.match_id,
+                            'player':i.opponent.user.username if i.opponent is not None else ' ',
+                            'opponent': i.player.user.username if i.player.user is not None else 'computer player',
+                            'competition': i.competition.competition_id,
+                            'level':i.player.level
+                        })
+                    
                 
+                return Response({'pair': pairs}, status=status.HTTP_201_CREATED)
 
-                pairs.append(pair)
 
             except Exception as e:
                 print(e)
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'pair': str(e)}, status=status.HTTP_201_CREATED)
 
-        return Response({'pair': pairs}, status=status.HTTP_201_CREATED)
+        
 
 
 
@@ -149,9 +161,9 @@ class ParticipantViews(APIView):
     def post(self, request):
        # Implement time check
         current_time = datetime.datetime.now().time()
-        threshold_time = datetime.time(hour=12, minute=0, second=0)  # Set the threshold time here (e.g., 12:00:00)
-        if current_time < threshold_time:
-            return Response({'detail': 'The quiz is not yet started.'}, status=status.HTTP_400_BAD_REQUEST)
+        # threshold_time = datetime.time(hour=12, minute=0, second=0)  # Set the threshold time here (e.g., 12:00:00)
+        # if current_time < threshold_time:
+        #     return Response({'detail': 'The quiz is not yet started.'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = ParticipantSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -159,38 +171,65 @@ class ParticipantViews(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
-
-
-
 class ScoreView(APIView):
 
     def get(self,request):
         query = Participant.objects.all().values('Score','participant_id')
-        print(query)
         return Response({'score':query},status = status.HTTP_200_OK)
 
 @api_view(['PUT'])
-def scoreput(request, uuid):
+def scoreput(request,participant_uuid,match_uuid):
     try:
-        participant = Participant.objects.get(participant_id=uuid)
+        error_score = {}
+        participant = Participant.objects.get(participant_id=participant_uuid)
+        pair = Pair.objects.get(match_id = match_uuid)
         serializer = ScoreSerializer(participant, data=request.data)
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            print('!!!!!!!!!!!score is saved!!!!!!!!!!!!!!!!')
+        try:
+            error_winner = {}
+            # check to see if all have given there scores or not
+            
+            scores = [pair.player.Score,pair.opponent.Score if pair.opponent is not None else 0]
+            winner_score = max(scores)
+            
+            if scores.index(winner_score) == 0:
+                pair.winner = pair.player
+                pair.save()
+            elif scores.index(winner_score) == 1:
+                pair.winner = pair.opponent
+                pair.save()
+            print('!!!!!!!!!!!!!!!!winner is saved!!!!!!!!!!!!!!')
+            try:
+                error_level = {}
+                participant.level += 1
+                participant.save()
+                print('!!!!!!!!!!!!!!!!level is incremented !!!!!!!!!!')
+            except Exception as e :
+                error_level['errors'] = str(e)
+                print(e)
+            
+        except Exception as e:
+            error_winner['errors'] = str(e)
+            print(e)
+        
+    except Exception as e:
+        error_score['error'] = str(e)
+        print(e)
+        
+    return Response({'done':'yes'},
+            status=status.HTTP_201_CREATED)
+        
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
-    except Participant.DoesNotExist:
-        return Response({'error': 'Participant not found.'}, status=status.HTTP_404_NOT_FOUND)
-@api_view(['POSt'])
+@api_view(['POST'])
 def winner(request,uuid):
     # implement winner logic here
-    pair = Pair.objects.get(match_id = uuid)
-    scores = [pair.participant1.Score,pair.participant2.Score]
-    winner_score = max(scores)
+    
+    
     print(winner_score)
     if scores.index(winner_score) == 0:
         pair.winner = pair.participant1

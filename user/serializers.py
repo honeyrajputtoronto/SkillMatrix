@@ -51,11 +51,11 @@ class PairSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Pair
-        fields = ['match_id', 'participant1', 'participant2', 'competition']
+        fields = ['match_id', 'player', 'opponent', 'competition']
         
         
 class ParticipantSerializer(serializers.ModelSerializer):
-    #class Meta:
+    # class Meta:
         ##exclude = ['level']
     # username = serializers.CharField(source='user.username', read_only=True)
 

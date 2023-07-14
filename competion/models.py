@@ -1,4 +1,5 @@
 from django.db import models
+import math
 import uuid
 # Create your models here.
 
@@ -13,4 +14,8 @@ class Competition(models.Model):
     
     def __str__(self):
         return f"{self.competition_id}"
+    
+    @classmethod
+    def levels(cls,n):
+        return math.ceil(math.log2(n))
     

@@ -8,15 +8,14 @@ class Participant(models.Model):
     participant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
-    level = models.IntegerField()
+    level = models.IntegerField(default=0)
     Score = models.DecimalField(max_digits=100, decimal_places=8,default=0.0)
 
     def __str__(self):
         return str(self.participant_id)
     
-    @classmethod
-    def levels(cls):
-        return math.ceil(math.log2(cls.objects.count()))
+    
+    
     
     
     
