@@ -178,72 +178,65 @@ class ScoreView(APIView):
         return Response({'score':query},status = status.HTTP_200_OK)
 
 @api_view(['PUT'])
-def scoreput(request,participant_uuid,match_uuid):
+def scoreput(request,participant_uuid):
     try:
         error_score = {}
         participant = Participant.objects.get(participant_id=participant_uuid)
-        pair = Pair.objects.get(match_id = match_uuid)
+
         serializer = ScoreSerializer(participant, data=request.data)
 
         if serializer.is_valid():
             serializer.save()
-            print('!!!!!!!!!!!score is saved!!!!!!!!!!!!!!!!')
-        try:
-            error_winner = {}
-            # check to see if all have given there scores or not
-            
-            scores = [pair.player.Score,pair.opponent.Score if pair.opponent is not None else 0]
+            print('!!!!!!!!!!!!!!!!score is saved!!!!!!!!!!!!!!!!')
+    except Exception as e:
+        error_score['error'] = str(e)
+        print(e)
+        return Response({str(e)})
+        
+    return Response({'messgae':f'Score is saved for {participant_uuid} '},status=status.HTTP_201_CREATED)
+        
+
+    
+
+@api_view(['GET'])
+def winner(request,match_uuid,participant_uuid):
+    pair = Pair.objects.get(match_id=match_uuid)
+    participant = Participant.objects.get(participant_id=participant_uuid)
+    try:
+        error_winner = {}
+        # check to see if all have given there scores or not still need to be implemented
+        print(Participant.objects.count())
+        print(len(Participant.objects.filter(Score__gt=0)))
+        if Participant.objects.count() == len(Participant.objects.filter(Score__gt=0)):
+            scores = [pair.player.Score, pair.opponent.Score if pair.opponent is not None else 0]
             winner_score = max(scores)
-            
             if scores.index(winner_score) == 0:
                 pair.winner = pair.player
                 pair.save()
+                print('!!!!!!!!!!!!!!!!winner is saved!!!!!!!!!!!!!!!!')
             elif scores.index(winner_score) == 1:
                 pair.winner = pair.opponent
                 pair.save()
-            print('!!!!!!!!!!!!!!!!winner is saved!!!!!!!!!!!!!!')
+                print('!!!!!!!!!!!!!!!!winner is saved!!!!!!!!!!!!!!!!')
             try:
                 error_level = {}
                 participant.level += 1
                 participant.save()
-                print('!!!!!!!!!!!!!!!!level is incremented !!!!!!!!!!')
-            except Exception as e :
+                print('!!!!!!!!!!!!!!!!level is incremented!!!!!!!!!!!!!!!!')
+                return Response({'messgae': 'level is incremented'}, status=status.HTTP_201_CREATED)
+            except Exception as e:
                 error_level['errors'] = str(e)
                 print(e)
-            
-        except Exception as e:
-            error_winner['errors'] = str(e)
-            print(e)
-        
+                return Response({str(e)})
+
     except Exception as e:
-        error_score['error'] = str(e)
+        error_winner['errors'] = str(e)
         print(e)
-        
-    return Response({'done':'yes'},
-            status=status.HTTP_201_CREATED)
-        
+        return Response({str(e)})
 
-    
+def winner_show(request,match_uuid):
+    pair = Pair.objects.get(match_id=match_uuid)
 
-@api_view(['POST'])
-def winner(request,uuid):
-    # implement winner logic here
-    
-    
-    print(winner_score)
-    if scores.index(winner_score) == 0:
-        pair.winner = pair.participant1
-        pair.save()
-    elif scores.index(winner_score) == 1:
-        pair.winner = pair.participant2
-        pair.save()
-    return Response({
-        'competition':pair.competition.competition_id,
-        'match_id':pair.match_id,
-        'winner_user': pair.winner.participant_id,
-        'username':pair.winner.user.username,
-        'score':winner_score},
-        status=status.HTTP_201_CREATED)
 
 
 
