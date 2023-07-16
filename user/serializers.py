@@ -66,7 +66,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
 
 class ScoreSerializer(serializers.Serializer):
     participant_id = serializers.UUIDField
-    Score = serializers.IntegerField()
+    Score = serializers.DecimalField(max_digits=100, decimal_places=8)
 
     def update(self, instance, validated_data):
         instance.Score = validated_data.get('Score', instance.Score)
