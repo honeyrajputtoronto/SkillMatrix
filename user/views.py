@@ -14,7 +14,16 @@ from rest_framework.permissions import IsAuthenticated
 import datetime
 # from logout_tokens.models import TokenBlacklist
 
+'''Helper function to generate JWT tokens for a user'''
 
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    # refresh is a variable holding refresh token
+    # this function will return a dictionary of refresh and access token
+    return {
+        'refresh':str(refresh),
+        'access':str(refresh.access_token)
+    }
 
 # Create your views here.
 ''''''
