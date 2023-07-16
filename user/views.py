@@ -143,14 +143,6 @@ class PairView(APIView):
                 print(e)
                 return Response({'pair': str(e)}, status=status.HTTP_201_CREATED)
 
-        
-
-
-
-
-
-
-
 
 class ParticipantViews(APIView):
     def get(self, request):

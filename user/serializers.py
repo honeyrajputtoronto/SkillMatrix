@@ -62,7 +62,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participant
         #fields = '__all__'
-        exclude = ['Score' , 'level']
+        exclude = ['Score']
 
 class ScoreSerializer(serializers.Serializer):
     participant_id = serializers.UUIDField
