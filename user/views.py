@@ -79,7 +79,6 @@ class RegisterAPI(APIView):
 class PairView(APIView):
     def post(self, request,level):
         query = list(Participant.objects.filter(level = level).values('participant_id', 'competition','level'))
-        # print(query)
         pairs = []
         if len(query) % 2 != 0:
             query.append(None)
@@ -92,12 +91,10 @@ class PairView(APIView):
                 participant1 = Participant.objects.get(participant_id=participant1_id)
                 participant2 = Participant.objects.get(participant_id=participant2_id) if participant2_id is not None else None
                 competition = Competition.objects.get(competition_id=query[i]['competition'])
-                # if participant1.participant_id
-                # print('\n\n\n\n')
                 if not Pair.objects.filter(player=participant1, opponent=participant2, competition=competition):
                     selected_pair= Pair.objects.create(player=participant1, opponent=participant2, competition=competition)
                     pair = {
-                        # 'match_id': selected_pair.match_id,
+                        'match_id': selected_pair.match_id,
                         'player': participant1_id,
                         'opponent': participant2_id,
                         'competition': query[i]['competition'],
@@ -106,7 +103,7 @@ class PairView(APIView):
 
                     if participant2_id is not None:
                         reverse_pair = {
-                            # 'match_id': selected_pair.match_id,
+                            'match_id': selected_pair.match_id,
                             'player': participant2_id,
                             'opponent': participant1_id,
                             'competition': query[i]['competition'],
@@ -118,8 +115,6 @@ class PairView(APIView):
                 else:
                     match = list(Pair.objects.all())
                     for i in match:
-                        print(i.opponent.user.username if i.opponent else 'computer player')
-                    for i in match:
                         pairs.append({
                             'match_id': i.match_id,
                             'player': i.player.user.username if i.player.user is not None else '',
@@ -129,8 +124,8 @@ class PairView(APIView):
                         })
                         pairs.append({
                             'match_id': i.match_id,
-                            'player':i.opponent.user.username if i.opponent is not None else ' ',
-                            'opponent': i.player.user.username if i.player.user is not None else 'computer player',
+                            'player':i.opponent.user.username if i.opponent is not None else 'computer player',
+                            'opponent': i.player.user.username if i.player.user is not None else '',
                             'competition': i.competition.competition_id,
                             'level':i.player.level
                         })
