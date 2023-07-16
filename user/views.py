@@ -232,9 +232,17 @@ def winner(request, match_uuid):
 
     return Response({'message': 'level is incremented'}, status=status.HTTP_201_CREATED)
 
-
+@api_view(['GET'])
 def winner_show(request,match_uuid):
     pair = Pair.objects.get(match_id=match_uuid)
+    return Response(
+        {
+            'competition': pair.competition.competition_id,
+            'match_id':pair.match_id,
+            'winner_user':pair.winner.participant_id,
+            'username':pair.winner.user.username,
+            'score':pair.winner.Score
+        },status = status.HTTP_200_OK)
 
 
 
