@@ -35,8 +35,8 @@ def decrypt(text):
 # Create your views here.
 
 class QuestionView(APIView):
-    def get(self, request):
-        questions = Question.objects.all()
+    def get(self, request,level):
+        questions = Question.objects.filter(level = level)
         serializer = QuestionSerializer(questions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -48,38 +48,3 @@ class QuestionView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-        
-
-    
-# class SavedAnswersViews(APIView):
-#     def get(self, request):
-#         saved_answers = SavedAnswers.objects.all()
-#         serializer = SavedAnswersSerializer(saved_answers, many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-#     def post(self, request):
-#         serializer = SavedAnswersSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    
-# class EncryptionView(APIView):
-#     def post(self, request,uuid):
-#         question = Question.objects.get('correct_ans')
-#         encrypt_ans = 
-#         return Response({'encrypted_text': encrypted_text_str})
-    
-# class ScoreView(APIView):
-#     def get(self, request):
-#         saved_answers = SavedAnswers.objects.all()
-#         serializer = SavedAnswersSerializer(saved_answers, many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-#     def post(self, request):
-#         serializer = SavedAnswersSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

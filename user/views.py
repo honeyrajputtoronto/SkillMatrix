@@ -233,6 +233,3 @@ def winner_show(request,match_uuid):
 
 
 
-
-
-
