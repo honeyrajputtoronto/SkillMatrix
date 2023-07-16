@@ -8,7 +8,7 @@ class Participant(models.Model):
     participant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
-    level = models.IntegerField(default=1)
+    level = models.IntegerField(default=1,)
     Score = models.DecimalField(max_digits=100, decimal_places=8,default=0.0)
 
     def __str__(self):
