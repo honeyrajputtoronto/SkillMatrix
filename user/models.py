@@ -26,7 +26,7 @@ class Pair(models.Model):
     player = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='player', default=None, null=True)
     opponent = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='opponent', default=None, null=True)
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE, default=None)
-    winner = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='winner', default=None, null=True,blank=True)
+    winner = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='winner',null=True,blank=True)
 
 
     

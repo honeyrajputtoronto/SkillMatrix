@@ -56,9 +56,13 @@ INSTALLED_APPS = [
     'competion',
 ]
 
+# CORS_ALLOWED_ORIGINS = [
+#     "http://read.only.com",
+#     "http://change.allowed.com",
+# ]
 CORS_ALLOWED_ORIGINS = [
-    "http://read.only.com",
-    "http://change.allowed.com",
+    'http://localhost:53149',
+    # Add other origins as needed
 ]
 
 CORS_ORIGIN_WHITELIST = ["https://academyhustlers.live",]
@@ -76,6 +80,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     # 'logout_tokens.middleware.LogoutTokenMiddleware',
 ]
+# CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'academy_hustlers.urls'
 

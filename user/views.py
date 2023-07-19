@@ -12,6 +12,7 @@ from rest_framework.decorators import api_view
 from django.contrib.auth import logout
 from rest_framework.permissions import IsAuthenticated
 import datetime
+from django.contrib.auth.models import User
 # from logout_tokens.models import TokenBlacklist
 
 '''Helper function to generate JWT tokens for a user'''
@@ -104,8 +105,8 @@ class PairView(APIView):
                     selected_pair= Pair.objects.create(player=participant1, opponent=participant2, competition=competition)
                     pair = {
                         'match_id': selected_pair.match_id,
-                        'player': participant1_id,
-                        'opponent': participant2_id,
+                        'player': selected_pair.player.user.username if selected_pair.player.user is not None else '',
+                        'opponent': selected_pair.opponent.user.username if selected_pair.opponent is not None else 'computer player',
                         'competition': query[i]['competition'],
                         'level':participant1.level
                     }
@@ -113,8 +114,8 @@ class PairView(APIView):
                     if participant2_id is not None:
                         reverse_pair = {
                             'match_id': selected_pair.match_id,
-                            'player': participant2_id,
-                            'opponent': participant1_id,
+                            'player': selected_pair.opponent.user.username if selected_pair.opponent is not None else 'computer player',
+                            'opponent': selected_pair.player.user.username if selected_pair.player.user is not None else '',
                             'competition': query[i]['competition'],
                             'level':participant1.level
                         }
@@ -124,6 +125,7 @@ class PairView(APIView):
                 else:
                     match = list(Pair.objects.all())
                     for i in match:
+                        print(i)
                         pairs.append({
                             'match_id': i.match_id,
                             'player': i.player.user.username if i.player.user is not None else '',
@@ -239,6 +241,7 @@ def winner_show(request,match_uuid):
             'username':pair.winner.user.username,
             'score':pair.winner.Score
         },status = status.HTTP_200_OK)
+
 
 
 

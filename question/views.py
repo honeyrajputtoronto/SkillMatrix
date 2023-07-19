@@ -11,7 +11,7 @@ import base64
 from django.http import JsonResponse
 from user.models import Pair
 import math
-
+from rest_framework.decorators import action
 
 
 
@@ -35,11 +35,13 @@ def decrypt(text):
 # Create your views here.
 
 class QuestionView(APIView):
+    @action(detail=True, methods=['GET'])
     def get(self, request,level):
         questions = Question.objects.filter(level = level)
         serializer = QuestionSerializer(questions, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['POST'])
     def post(self, request):
         serializer = QuestionSerializer(data=request.data)
         if serializer.is_valid():
