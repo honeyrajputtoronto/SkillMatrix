@@ -9,7 +9,7 @@ class Participant(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
     level = models.IntegerField(default=1,)
-    Score = models.DecimalField(max_digits=100, decimal_places=8,default=0.0)
+    Score = models.DecimalField(max_digits=100, decimal_places=20,default=0.0)
 
     def __str__(self):
         return str(self.participant_id)
