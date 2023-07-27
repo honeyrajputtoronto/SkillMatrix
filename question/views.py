@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from .serializers import QuestionSerializer
 from .models import Question
 from user.models import Participant
-from cryptography.fernet import Fernet
 import base64
 from django.http import JsonResponse
 from user.models import Pair
@@ -15,22 +14,7 @@ from rest_framework.decorators import action
 
 
 
-key = Fernet.generate_key()
-cipher_suite = Fernet(key)
 
-def encrypt(text):
-    # Encrypt text
-    encrypted_text = cipher_suite.encrypt(text.encode())
-    encrypted_text_str = base64.urlsafe_b64encode(encrypted_text).decode()
-    print("Encrypted text:",encrypted_text)
-    return encrypted_text_str
-
-def decrypt(text):
-    # Decode the base64-encoded text
-    encrypted_text = base64.urlsafe_b64decode(text)
-    decrypted_text = cipher_suite.decrypt(encrypted_text).decode()
-    print("Encrypted text:",decrypted_text)
-    return decrypted_text
 
 # Create your views here.
 
