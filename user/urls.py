@@ -10,6 +10,6 @@ urlpatterns = [
     path("participantview/", ParticipantViews.as_view(), name="participantview"),
     path('score/',ScoreView.as_view(),name = 'score-all'),
     path('score/<participant_uuid>',scoreput,name = 'score-all'),
-    path("levels/<uuid:uuid>", tlevel, name="level-calculate")
+    path("levels/<uuid:uuid>/<int:level>", tlevel, name="level-calculate")
 
 ]

@@ -8,6 +8,7 @@ from .serializers import RegisterSerializer, ParticipantSerializer,ScoreSerializ
 from .models import Participant,Pair
 from competion.models import  Competition
 from django.db.models import Max
+from django.core import  exceptions
 from rest_framework.decorators import api_view
 from django.contrib.auth import logout
 from rest_framework.permissions import IsAuthenticated
@@ -30,12 +31,11 @@ def get_tokens_for_user(user):
 ''''''
 
 @api_view(['POST'])
-def tlevel(request,uuid):
+def tlevel(request,uuid,level):
     competition = Competition.objects.get(competition_id = uuid)
-    n = Participant.objects.count()
-    competition.level = competition.levels(n)
-    competition.save()
-    return Response({'total_level':competition.levels(n)},status=status.HTTP_201_CREATED)
+    n = Participant.objects.filter(level = level,competition = competition).count()
+    next = False if n == 1 else True
+    return Response({f'participants':n,'next_level':next},status=status.HTTP_201_CREATED)
 '''API view for user login'''
      
 class LoginAPI(APIView):
@@ -91,63 +91,74 @@ class PairView(APIView):
         query = list(Participant.objects.filter(level = level).values('participant_id', 'competition','level'))
         pairs = []
         if len(query) % 2 != 0:
-            query.append(None)
+            print('numbers are odd')
+            query.append(
+                {
+                "participant_id": "computer",
+                "competition": query[0]['competition'],
+                "level": level
+            })
+        try:
+            for i in range(0, len(query), 2):
 
-        for i in range(0, len(query), 2):
-            participant1_id = query[i]['participant_id']
-            participant2_id = query[i + 1]['participant_id'] if query[i + 1] is not None else None
-
-            try:
-                participant1 = Participant.objects.get(participant_id=participant1_id)
-                participant2 = Participant.objects.get(participant_id=participant2_id) if participant2_id is not None else None
                 competition = Competition.objects.get(competition_id=query[i]['competition'])
-                if not Pair.objects.filter(player=participant1, opponent=participant2, competition=competition):
-                    selected_pair= Pair.objects.create(player=participant1, opponent=participant2, competition=competition)
-                    pair = {
-                        'match_id': selected_pair.match_id,
-                        'player': selected_pair.player.user.username if selected_pair.player.user is not None else '',
-                        'opponent': selected_pair.opponent.user.username if selected_pair.opponent is not None else 'computer player',
-                        'competition': query[i]['competition'],
-                        'level':participant1.level
-                    }
-
-                    if participant2_id is not None:
-                        reverse_pair = {
-                            'match_id': selected_pair.match_id,
-                            'player': selected_pair.opponent.user.username if selected_pair.opponent is not None else 'computer player',
-                            'opponent': selected_pair.player.user.username if selected_pair.player.user is not None else '',
-                            'competition': query[i]['competition'],
-                            'level':participant1.level
+                participant1 = Participant.objects.get(participant_id=query[i]['participant_id'])
+                # print(participant1.user.username)
+                try:
+                    participant2 = Participant.objects.get(participant_id=query[i + 1]['participant_id'])
+                    new_pair = Pair.objects.create(
+                        player=participant1,
+                        opponent=participant2,
+                        competition=competition
+                    )
+                    pairs.append(
+                        {
+                            'match_id': new_pair.match_id,
+                            'player': new_pair.player.user.username,
+                            'opponent': new_pair.opponent.user.username,
+                            'competition': competition.competition_id,
+                            'level': level
                         }
-                    pairs.append(reverse_pair)
-                    pairs.append(pair)
-                    
-                else:
-                    match = list(Pair.objects.all())
-                    for i in match:
-                        print(i)
-                        pairs.append({
-                            'match_id': i.match_id,
-                            'player': i.player.user.username if i.player.user is not None else '',
-                            'opponent': i.opponent.user.username if i.opponent is not None else 'computer player',
-                            'competition': i.competition.competition_id,
-                            'level':i.player.level
-                        })
-                        pairs.append({
-                            'match_id': i.match_id,
-                            'player':i.opponent.user.username if i.opponent is not None else 'computer player',
-                            'opponent': i.player.user.username if i.player.user is not None else '',
-                            'competition': i.competition.competition_id,
-                            'level':i.player.level
-                        })
-                    
-                
-                return Response({'pair': pairs}, status=status.HTTP_201_CREATED)
+                    )
+                    pairs.append(
+                        {
+                            'match_id': new_pair.match_id,
+                            'player': new_pair.opponent.user.username,
+                            'opponent': new_pair.player.user.username,
+                            'competition': competition.competition_id,
+                            'level': level
+                        }
+                    )
 
+                except exceptions.ValidationError as e:
+                    participant2 = 'computer player'
+                    new_pair = Pair.objects.create(
+                        player=participant1,
+                        competition=competition
+                    )
+                    pairs.append(
+                        {
+                            'match_id': new_pair.match_id,
+                            'player': new_pair.player.user.username,
+                            'opponent': 'computer',
+                            'competition': competition.competition_id,
+                            'level': level
+                        }
+                    )
+                    pairs.append(
+                        {
+                            'match_id': new_pair.match_id,
+                            'player': 'computer',
+                            'opponent': new_pair.player.user.username,
+                            'competition': competition.competition_id,
+                            'level': level
+                        }
+                    )
+            return Response({'pair': pairs}, status=status.HTTP_201_CREATED)
 
-            except Exception as e:
-                print(e)
-                return Response({'pair': str(e)}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print(e)
+            return Response({'pair': str(e)}, status=status.HTTP_201_CREATED)
 
 
 class ParticipantViews(APIView):
