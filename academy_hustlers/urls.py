@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.conf.urls import include, url
 from hustlers.views import get_current_time
 from rest_framework.routers import DefaultRouter
+from django.conf.urls.static import static
+from django.conf import settings
 from django.urls import path,include
 from django.views.generic import RedirectView
 
@@ -20,7 +22,5 @@ urlpatterns = [
     
     
     # path("getactiveusgeters/", GetActiveUsers.as_view(), name="getactiveusers"),
-    
-    
 
-]
+]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT
