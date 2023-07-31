@@ -23,4 +23,4 @@ urlpatterns = [
     
     # path("getactiveusgeters/", GetActiveUsers.as_view(), name="getactiveusers"),
 
-]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT
+]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
