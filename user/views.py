@@ -89,6 +89,7 @@ class RegisterAPI(APIView):
 class PairView(APIView):
     def post(self, request,level):
         query = list(Participant.objects.filter(level = level).values('participant_id', 'competition','level'))
+        print('query',query)
         pairs = []
         if len(query) % 2 != 0:
             print('numbers are odd')
@@ -104,49 +105,70 @@ class PairView(APIView):
                 competition = Competition.objects.get(competition_id=query[i]['competition'])
                 participant1 = Participant.objects.get(participant_id=query[i]['participant_id'])
 
+
                 try:
                     participant2 = Participant.objects.get(participant_id=query[i + 1]['participant_id'])
+                    print('participant1',participant1.user.username,'participant2',participant2.user.username)
                     if not Pair.objects.filter(player=participant1, opponent=participant2, competition=competition):
-                        print('no')
                         new_pair = Pair.objects.create(
                             player=participant1,
                             opponent=participant2,
-                            competition=competition)
+                            competition=competition,
+                            level = level)
+                        print('new pair',new_pair.player.user.username,new_pair.opponent.user.username)
+                    else:
+                        print('Not working')
 
                 except exceptions.ValidationError as e:
                     print('no except')
                     participant2 = 'computer player'
-                    print(Pair.objects.filter(player=participant1, opponent=None, competition=competition))
-                    if not Pair.objects.filter(player=participant1, competition=competition):
+                    print('validation error',e)
+
+                    if not Pair.objects.filter(player=participant1,opponent = None, competition=competition):
                         new_pair = Pair.objects.create(
                             player=participant1,
-                            competition=competition
-                        )
-            try:
-                print('yes except ')
-                match = Pair.objects.all()
-                print(match)
-                for i in match:
-                    pairs.append({
-                        'match_id': i.match_id,
-                        'player': i.player.user.username if i.player.user is not None else '',
-                        'opponent': i.opponent.user.username if i.opponent is not None else 'computer player',
-                        'competition': i.competition.competition_id,
-                        'level': i.player.level
-                    })
-                    pairs.append({
-                        'match_id': i.match_id,
-                        'player': i.opponent.user.username if i.opponent is not None else 'computer player',
-                        'opponent': i.player.user.username if i.player.user is not None else '',
-                        'competition': i.competition.competition_id,
-                        'level': i.player.level
-                    })
-            except Exception as E:
-                print(E)
+                            competition=competition,
+                            level = level)
+                        print('new pair computer player', new_pair.player.user.username, new_pair.opponent.user.username)
+
             return Response({'pair': pairs}, status=status.HTTP_201_CREATED)
         except Exception as e:
+            print('exception :',e)
+            return Response({'error':str(e)},status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, level):
+        pairs = []
+        try:
+            match = Pair.objects.filter(level = level)
+            for i in match:
+                print({
+                        'match_id': i.match_id,
+                        'player': i.player.user.username,
+                        'opponent': i.opponent.user.username if i.opponent is not None else 'computer player',
+                        'competition': i.competition.competition_id,
+                        'level': i.level
+                    })
+                pairs.append({
+                        'match_id': i.match_id,
+                        'player': i.player.user.username,
+                        'opponent': i.opponent.user.username if i.opponent is not None else 'computer player',
+                        'competition': i.competition.competition_id,
+                        'level': i.level
+                    })
+                pairs.append({
+                    'match_id': i.match_id,
+                    'player': i.opponent.user.username if i.opponent is not None else 'computer player',
+                    'opponent': i.player.user.username,
+                    'competition': i.competition.competition_id,
+                    'level': i.level
+                })
+            return Response({'pair': pairs}, status=status.HTTP_200_OK)
+        except Exception as e:
             print(e)
-            return Response({'pair': str(e)}, status=status.HTTP_201_CREATED)
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 class ParticipantViews(APIView):
     def get(self, request):
         participant = Participant.objects.all()

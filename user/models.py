@@ -12,7 +12,7 @@ class Participant(models.Model):
     Score = models.DecimalField(max_digits=100, decimal_places=20,default=0.0)
 
     def __str__(self):
-        return str(self.participant_id)
+        return f"{self.user.username}| {self.level}"
     
     
     
@@ -27,6 +27,11 @@ class Pair(models.Model):
     opponent = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='opponent', default=None, null=True)
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE, default=None)
     winner = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='winner',null=True,blank=True)
+    creation_date_time = models.DateTimeField(auto_now=True, null=True)
+    level = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"player-{self.player} opponent-{self.opponent}"
 
 
     
