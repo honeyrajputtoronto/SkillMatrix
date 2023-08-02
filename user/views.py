@@ -221,27 +221,30 @@ def scoreput(request,participant_uuid):
 def winner(request, match_uuid):
     try:
         pair = Pair.objects.get(match_id=match_uuid)
+        print('pair level :',pair.level)
         scores = [pair.player.Score, pair.opponent.Score if pair.opponent is not None else 0]
+        print('scores :',scores)
         if max(scores):
             winner_score = max(scores)
-
+            print('winner score :',winner_score)
             if scores.index(winner_score) == 0:
+
                 pair.winner = pair.player
-                pair.player.level += 1
+                pair.player.level = pair.level + 1
                 print(pair.player.level)# Increment player's score
                 pair.player.save()
                 print('!!!!!!!!!!!!!!!!winner is saved!!!!!!!!!!!!!!!!')
                 print('!!!!!!!!!!!!!!!!level is incremented!!!!!!!!!!!!!!!!')
-
+                print('final level :',pair.player.level)
             elif scores.index(winner_score) == 1:
                 pair.winner = pair.opponent
                 if pair.opponent:
                     print(pair.opponent.level)
-                    pair.opponent.level += 1  # Increment opponent's score
+                    pair.opponent.level += pair.level + 1 # Increment opponent's score
                     pair.opponent.save()
                 print('!!!!!!!!!!!!!!!!winner is saved!!!!!!!!!!!!!!!!')
                 print('!!!!!!!!!!!!!!!!level is incremented!!!!!!!!!!!!!!!!')
-
+                print('final level :',pair.opponent.level)
             pair.save()  # Save the winner in the pair object
         elif scores[0] == scores[1]:
             pair.winner = pair.player
