@@ -240,7 +240,7 @@ def winner(request, match_uuid):
                 pair.winner = pair.opponent
                 if pair.opponent:
                     print(pair.opponent.level)
-                    pair.opponent.level += pair.level + 1 # Increment opponent's score
+                    pair.opponent.level = pair.level + 1 # Increment opponent's score
                     pair.opponent.save()
                 print('!!!!!!!!!!!!!!!!winner is saved!!!!!!!!!!!!!!!!')
                 print('!!!!!!!!!!!!!!!!level is incremented!!!!!!!!!!!!!!!!')
@@ -248,7 +248,9 @@ def winner(request, match_uuid):
             pair.save()  # Save the winner in the pair object
         elif scores[0] == scores[1]:
             pair.winner = pair.player
-            pair.save()
+            pair.player.level = pair.level + 1
+            pair.player.save()
+            print('\n\n final level in case of same score :',pair.player.level,'\n name :',pair.player.user.username)
 
     except Exception as e:
         print(e)
