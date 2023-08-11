@@ -21,7 +21,10 @@ class Question(models.Model):
         return str(self.question_id)
     
     
-    
+class T_F(models.Model):
+    question = models.ForeignKey(Question,on_delete=models.CASCADE)
+    answer=models.BooleanField()
+    correctanswer=models.BooleanField()      
 
 
 
