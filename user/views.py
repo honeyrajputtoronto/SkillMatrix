@@ -191,8 +191,10 @@ class ParticipantViews(APIView):
 class ScoreView(APIView):
 
     def get(self,request):
-        query = Participant.objects.all().values('Score','participant_id')
-        return Response({'score':query},status = status.HTTP_200_OK)
+        query = Participant.objects.all().values('Score','user__username')
+        sorted_scores = sorted(query, key=lambda x: x['Score'], reverse=True)
+        print(sorted_scores)
+        return Response({'score':sorted_scores},status = status.HTTP_200_OK)
 
 @api_view(['PUT'])
 def scoreput(request,participant_uuid):
