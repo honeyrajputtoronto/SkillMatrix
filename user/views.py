@@ -95,7 +95,7 @@ class PairView(APIView):
             print('numbers are odd')
             query.append(
                 {
-                "participant_id": "computer",
+                "participant_id": "Honey Rajput",
                 "competition": query[0]['competition'],
                 "level": level
             })
@@ -252,6 +252,7 @@ def winner(request, match_uuid):
             pair.winner = pair.player
             pair.player.level = pair.level + 1
             pair.player.save()
+            pair.save()
             print('\n\n final level in case of same score :',pair.player.level,'\n name :',pair.player.user.username)
 
     except Exception as e:
