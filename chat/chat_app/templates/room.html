@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Quiz Room</title>
+    <style>
+      #question-container {
+        margin: 20px;
+      }
+      #options {
+        list-style-type: none;
+        padding: 0;
+      }
+      .option {
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="question-container">
+      <div id="question"></div>
+      <ul id="options"></ul>
+      <button onclick="submitAnswer()">Submit Answer</button>
+    </div>
+    {{ room_name|json_script:"room-name" }}
+    <script>
+      const roomName = JSON.parse(
+        document.getElementById("room-name").textContent
+      );
+      const Socket = new WebSocket(
+        "ws://" + window.location.host + "/ws/" + roomName + "/"
+      );
+      let selectedAnswer = null;
+
+      Socket.addEventListener("open", (event) => {
+        console.log("WebSocket Connection Opened");
+        // Send a command to start the quiz
+        Socket.send(JSON.stringify({ type: "start_quiz" }));
+      });
+
+      Socket.addEventListener("message", (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === "question") {
+          displayQuestion(data.question);
+        }
+        else if (data.type == 'check'){
+            if (data.status === "correct") {
+                // Handle correct answer
+                // You can update your UI or provide feedback as needed
+                console.log("Your answer is correct!");
+              } else if (data.status === "wrong") {
+                // Handle wrong answer
+                // You can update your UI to display the correct answer
+                const correctAnswer = data.correct_answer;
+                console.log("Your answer is wrong. The correct answer is: " + correctAnswer);
+        }
+      }});
+
+      Socket.addEventListener("close", (event) => {
+        console.log("WebSocket Connection Closed");
+      });
+
+      function displayQuestion(question) {
+        document.getElementById("question").textContent = question.text;
+        const optionsContainer = document.getElementById("options");
+        optionsContainer.innerHTML = ""; // Clear previous options
+        question.options.forEach((option, index) => {
+          const li = document.createElement("li");
+          li.className = "option";
+          li.innerHTML = `<input type="radio" name="option" value="${option}" onclick="selectAnswer('${option}')"> ${option}`;
+          optionsContainer.appendChild(li);
+        });
+      }
+
+      function selectAnswer(answer) {
+        selectedAnswer = answer;
+      }
+
+      function submitAnswer(answer = null) {
+        if (selectedAnswer) {
+            console.log(JSON.stringify({ type: "answer", answer: selectedAnswer }))
+          Socket.send(JSON.stringify({ type: "answer", answer: selectedAnswer }))
+          selectedAnswer = null; // Reset selected answer
+        } else {
+          alert("Please select an answer before submitting.");
+        }
+      }
+    </script>
+  </body>
+</html>
