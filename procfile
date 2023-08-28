@@ -1,1 +1,0 @@
-web: gunicorn academy_hustlers.wsgi --log-file -
