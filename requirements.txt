@@ -18,7 +18,7 @@ pyOpenSSL
 service-identity
 six
 sqlparse
-Twisted
+Twisted==23.8.0
 twisted-iocpsupport==1.0.4
 txaio
 typing_extensions
