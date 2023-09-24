@@ -35,7 +35,7 @@ def tlevel(request,uuid,level):
     competition = Competition.objects.get(competition_id = uuid)
     n = Participant.objects.filter(level = level,competition = competition).count()
     next = False if n == 1 else True
-    return Response({f'participants':n,'next_level':next},status=status.HTTP_201_CREATED)
+    return Response({'total_level':competition.levels(n),f'participants':n,'next_level':next},status=status.HTTP_201_CREATED)
 '''API view for user login'''
      
 class LoginAPI(APIView):
@@ -191,10 +191,12 @@ class ParticipantViews(APIView):
 class ScoreView(APIView):
 
     def get(self,request):
-        query = Participant.objects.all().values('Score','user__username')
-        sorted_scores = sorted(query, key=lambda x: x['Score'], reverse=True)
+        query = Participant.objects.all().values('Score','user__username','level')
+        sorted_level = sorted(query, key=lambda x: x['level'], reverse=True)
+        print(sorted_level)
+        sorted_scores = sorted(sorted_level, key=lambda x: x['Score'], reverse=True)
         print(sorted_scores)
-        return Response({'score':sorted_scores},status = status.HTTP_200_OK)
+        return Response({'score':sorted_level},status = status.HTTP_200_OK)
 
 @api_view(['PUT'])
 def scoreput(request,participant_uuid):
@@ -205,6 +207,8 @@ def scoreput(request,participant_uuid):
         serializer = ScoreSerializer(participant, data=request.data)
 
         if serializer.is_valid():
+            score += serializer.data['Score']
+            
             serializer.save()
             print('!!!!!!!!!!!!!!!!score is saved!!!!!!!!!!!!!!!!')
         else:

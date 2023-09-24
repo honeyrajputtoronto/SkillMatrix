@@ -69,7 +69,7 @@ class ScoreSerializer(serializers.Serializer):
     Score = serializers.DecimalField(max_digits=100, decimal_places=8)
 
     def update(self, instance, validated_data):
-        instance.Score = validated_data.get('Score', instance.Score)
+        instance.Score += validated_data.get('Score', instance.Score)
         # Update other fields as needed
         instance.save()
         return instance
